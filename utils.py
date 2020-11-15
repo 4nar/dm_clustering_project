@@ -5,7 +5,7 @@ from sklearn import preprocessing
 from sklearn.cluster import KMeans
 
 
-def distance(arr, oth_arr, type='euclidean'):
+def distance_pair(arr, oth_arr, type='euclidean'):
     k = oth_arr.shape[0]
     n = arr.shape[0]
     diff_matrix = np.zeros((k, n))
@@ -26,11 +26,11 @@ def kmeans(X, k):
     n = X.shape[0]
     centroids = X[np.random.randint(0, n, k), :]
     num_iter = 300
-    labels = np.argmin(distance(X, centroids), axis=1)
+    labels = np.argmin(distance_pair(X, centroids), axis=1)
     for iter in range(num_iter):
         for i in range(k):
             centroids[i] = X[np.where(labels==i)[0],:].mean(axis=0)
-        new_labels = np.argmin(distance(X, centroids), axis=1)
+        new_labels = np.argmin(distance_pair(X, centroids), axis=1)
         if np.array_equal(labels, new_labels):
             return labels
         labels = new_labels
@@ -58,10 +58,10 @@ def spectral_clustering_laplace_norm(X, sigma=0.3, k=3):
     model = KMeans(n_clusters=k)
     labels_norm = model.fit_predict(X_normalized)
     
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    ax.scatter(df['A'], df['B'], c=labels_norm)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_title(f'Figure 1: Relation between Variables, labeled using spectral clustering with sigma={sigma}')
+#     fig = plt.figure()
+#     ax = fig.add_subplot(1,1,1)
+#     ax.scatter(df['A'], df['B'], c=labels_norm)
+#     ax.set_xlabel('x')
+#     ax.set_ylabel('y')
+#     ax.set_title(f'Figure 1: Relation between Variables, labeled using spectral clustering with sigma={sigma}')
     return labels_norm
