@@ -3,7 +3,23 @@ from scipy import sparse
 from scipy.linalg import eigh
 from sklearn import preprocessing
 from sklearn.cluster import KMeans
+import pandas as pd
 
+def nmi(y, labels):
+    a = np.vstack((labels, y)).T
+    df_mut = pd.DataFrame(a, columns=['C', 'D'])
+    df_mut['P(C)']=df_mut['C'].map(df_mut['C'].value_counts(normalize=True))
+    df_mut['P(D)']=df_mut['D'].map(df_mut['D'].value_counts(normalize=True))
+    joint_prob = df_mut.groupby(['C','D'], as_index=False).size()/df_mut.shape[0]
+    df_mut = df_mut.set_index(['C','D']).join(joint_prob.to_frame())
+    df_mut.rename(columns={0:'P(C,D)'}, inplace=True)
+    df_mut = df_mut.drop_duplicates()
+    nom = np.sum(df_mut['P(C,D)']*np.log2(df_mut['P(C,D)']/(df_mut['P(C)']*df_mut['P(D)'])))
+    df_mut['H(C)'] = df_mut['P(C)'] * np.log2(df_mut['P(C)'])
+    df_mut['H(D)'] = df_mut['P(D)'] * np.log2(df_mut['P(D)'])
+    denom = np.sqrt(df_mut['H(C)'].sum()*df_mut['H(D)'].sum())
+    nmi = nom/denom
+    return nmi
 
 def distance_pair(arr, oth_arr, type='euclidean'):
     k = oth_arr.shape[0]
@@ -22,7 +38,8 @@ def distance_pair(arr, oth_arr, type='euclidean'):
     return diff_matrix.T
 
 
-def kmeans(X, k):
+def kmeans(X, k, random_state=123):
+    np.random.seed(random_state)
     n = X.shape[0]
     centroids = X[np.random.randint(0, n, k), :]
     num_iter = 300
